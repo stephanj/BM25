@@ -17,6 +17,10 @@
  */
 package com.devoxx.util;
 
+import com.devoxx.util.stemmer.snowball.EnglishStemmer;
+import com.devoxx.util.stemmer.Stemmer;
+import com.devoxx.util.stopwords.StopWords;
+
 import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -32,6 +36,7 @@ public class BM25 {
 
     private static final Pattern SPACE_PATTERN = Pattern.compile("\\s+");
     private final Set<String> stopWords;
+    private final Stemmer stemmer;
     private final List<String> corpus; // List of documents
     private final double avgDocLength;
     private Map<Integer, Map<String, Integer>> tf; // Term Frequency
@@ -44,7 +49,7 @@ public class BM25 {
      * @param corpus list of documents
      */
     public BM25(final List<String> corpus) {
-        this(corpus, 1.5, 0.75, StopWords.ENGLISH);
+        this(corpus, 1.5, 0.75, StopWords.ENGLISH, new EnglishStemmer());
     }
 
     /**
@@ -53,7 +58,17 @@ public class BM25 {
      * @param stopWords set of stop words
      */
     public BM25(final List<String> corpus, Set<String> stopWords) {
-        this(corpus, 1.5, 0.75, stopWords);
+        this(corpus, 1.5, 0.75, stopWords, new EnglishStemmer());
+    }
+
+    /**
+     * Constructor to initialize BM25
+     * @param corpus list of documents
+     * @param stopWords set of stop words
+     * @param stemmer stemmer
+     */
+    public BM25(final List<String> corpus, Set<String> stopWords, Stemmer stemmer) {
+        this(corpus, 1.5, 0.75, stopWords, stemmer);
     }
 
     /**
@@ -65,7 +80,11 @@ public class BM25 {
     public BM25(final List<String> corpus,
                 final double termFrequencyScalingFactor,
                 final double documentLengthNormalizationFactor) {
-        this(corpus, termFrequencyScalingFactor, documentLengthNormalizationFactor, StopWords.ENGLISH);
+        this(corpus,
+            termFrequencyScalingFactor,
+            documentLengthNormalizationFactor,
+            StopWords.ENGLISH,
+            new EnglishStemmer());
     }
 
     /**
@@ -73,19 +92,23 @@ public class BM25 {
      * @param corpus list of documents
      * @param termFrequencyScalingFactor scaling factor for term frequency
      * @param documentLengthNormalizationFactor normalization factor for document length
+     * @param stopWords set of stop words
+     * @param stemmer stemmer
      */
     public BM25(final List<String> corpus,
                 final double termFrequencyScalingFactor,
                 final double documentLengthNormalizationFactor,
-                final Set<String> stopWords) {
+                final Set<String> stopWords,
+                final Stemmer stemmer) {
         if (corpus == null || corpus.isEmpty()) {
             throw new IllegalArgumentException("Corpus must not be null and must contain at least one document.");
         }
         if (termFrequencyScalingFactor <= 0 || documentLengthNormalizationFactor < 0) {
             throw new IllegalArgumentException("termFrequencyScalingFactor and documentLengthNormalizationFactor must be positive.");
         }
-        this.stopWords = stopWords;
         this.corpus = corpus;
+        this.stopWords = stopWords;
+        this.stemmer = stemmer;
         this.avgDocLength = calculateAverageDocumentLength(corpus);
         this.tf = new HashMap<>();
         this.idf = new HashMap<>();
@@ -140,6 +163,7 @@ public class BM25 {
                     String[] terms = SPACE_PATTERN.split(corpus.get(docIndex).toLowerCase());
                     return Arrays.stream(terms)
                         .filter(term -> !stopWords.contains(term))
+                        .map(stemmer::stem)
                         .collect(Collectors.groupingBy(Function.identity(), Collectors.summingInt(term -> 1)));
                 }
             ));
@@ -157,7 +181,7 @@ public class BM25 {
                 String[] terms = SPACE_PATTERN.split(corpus.get(docIndex).toLowerCase());
                 return Arrays.stream(terms)
                     .distinct()
-                    .map(term -> new AbstractMap.SimpleEntry<>(term, docIndex));
+                    .map(term -> new AbstractMap.SimpleEntry<>(stemmer.stem(term), docIndex));
             })
             .collect(Collectors.groupingBy(
                 Map.Entry::getKey,
@@ -211,7 +235,8 @@ public class BM25 {
         }
 
         List<String> queryTerms = Arrays.stream(SPACE_PATTERN.split(query.toLowerCase()))
-            .filter(term -> !stopWords.contains(term)) // Filter out stop words
+            .filter(term -> !stopWords.contains(term))  // Filter out stop words
+            .map(stemmer::stem)                         // Stem the query terms
             .toList();
 
         return IntStream.range(0, corpus.size())

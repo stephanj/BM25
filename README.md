@@ -62,3 +62,18 @@ Current implementation supports English, French, German, Dutch, Italian and Span
       BM25 bm25 = new BM25(corpus, StopWords.ENGLISH);
 ```
 
+# With Stemming
+
+Get better results by using stemming. 
+
+Stemming maps different forms of the same word to a common "stem". 
+For example, the English stemmer maps running, run, runs to run. 
+So a searching for 'running' would also find documents which only have the other forms.
+
+```Java
+      BM25 bm25 = new BM25(corpus, StopWords.ENGLISH, new EnglishStemmer());
+```
+
+The default implementation uses the Porter2 stemmer from Snowball.  
+However you can implement other implementations, for example from CoreNLP or Lucene.
+
