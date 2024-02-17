@@ -52,7 +52,7 @@ Sentence 6 : Score = 0.0 - [I prefer Java over Python]
 
 # With stop words 
 
-Get better results by removing language specific stop words. 
+Get better results by removing language-specific stop words. 
 
 Based on ISO provided list from https://github.com/stopwords-iso 
 
@@ -75,5 +75,5 @@ So a search for 'running' would also find documents which only have the other fo
 ```
 
 The default implementation uses the Porter2 stemmer from Snowball.  
-You can easily add other Stemmer implementations, for example from CoreNLP or Lucene.
+You can add other Stemmer implementations, for example, CoreNLP or Lucene.
 
