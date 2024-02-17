@@ -75,5 +75,5 @@ So a searching for 'running' would also find documents which only have the other
 ```
 
 The default implementation uses the Porter2 stemmer from Snowball.  
-However you can implement other implementations, for example from CoreNLP or Lucene.
+However you can add very easily other implementations, for example from CoreNLP or Lucene.
 
