@@ -31,6 +31,7 @@ import java.util.stream.IntStream;
 public class BM25 {
 
     private static final Pattern SPACE_PATTERN = Pattern.compile("\\s+");
+    private final Set<String> stopWords;
     private final List<String> corpus; // List of documents
     private final double avgDocLength;
     private Map<Integer, Map<String, Integer>> tf; // Term Frequency
@@ -43,7 +44,16 @@ public class BM25 {
      * @param corpus list of documents
      */
     public BM25(final List<String> corpus) {
-        this(corpus, 1.5, 0.75);
+        this(corpus, 1.5, 0.75, StopWords.ENGLISH);
+    }
+
+    /**
+     * Constructor to initialize BM25
+     * @param corpus list of documents
+     * @param stopWords set of stop words
+     */
+    public BM25(final List<String> corpus, Set<String> stopWords) {
+        this(corpus, 1.5, 0.75, stopWords);
     }
 
     /**
@@ -55,12 +65,26 @@ public class BM25 {
     public BM25(final List<String> corpus,
                 final double termFrequencyScalingFactor,
                 final double documentLengthNormalizationFactor) {
+        this(corpus, termFrequencyScalingFactor, documentLengthNormalizationFactor, StopWords.ENGLISH);
+    }
+
+    /**
+     * Constructor to initialize BM25
+     * @param corpus list of documents
+     * @param termFrequencyScalingFactor scaling factor for term frequency
+     * @param documentLengthNormalizationFactor normalization factor for document length
+     */
+    public BM25(final List<String> corpus,
+                final double termFrequencyScalingFactor,
+                final double documentLengthNormalizationFactor,
+                final Set<String> stopWords) {
         if (corpus == null || corpus.isEmpty()) {
             throw new IllegalArgumentException("Corpus must not be null and must contain at least one document.");
         }
         if (termFrequencyScalingFactor <= 0 || documentLengthNormalizationFactor < 0) {
             throw new IllegalArgumentException("termFrequencyScalingFactor and documentLengthNormalizationFactor must be positive.");
         }
+        this.stopWords = stopWords;
         this.corpus = corpus;
         this.avgDocLength = calculateAverageDocumentLength(corpus);
         this.tf = new HashMap<>();
@@ -115,6 +139,7 @@ public class BM25 {
                 docIndex -> {
                     String[] terms = SPACE_PATTERN.split(corpus.get(docIndex).toLowerCase());
                     return Arrays.stream(terms)
+                        .filter(term -> !stopWords.contains(term))
                         .collect(Collectors.groupingBy(Function.identity(), Collectors.summingInt(term -> 1)));
                 }
             ));
@@ -184,7 +209,11 @@ public class BM25 {
         if (query == null || query.isEmpty()) {
             throw new IllegalArgumentException("Query must not be null and must contain at least one term.");
         }
-        List<String> queryTerms = List.of(SPACE_PATTERN.split(query.toLowerCase()));
+
+        List<String> queryTerms = Arrays.stream(SPACE_PATTERN.split(query.toLowerCase()))
+            .filter(term -> !stopWords.contains(term)) // Filter out stop words
+            .toList();
+
         return IntStream.range(0, corpus.size())
             .boxed()
             .map(docIndex -> Map.entry(docIndex, calculateDocumentScore(docIndex, queryTerms)))
@@ -213,9 +242,11 @@ public class BM25 {
         double termFrequencyScalingFactor = 1.5;
         double documentLengthNormalizationFactor = 0.75;
 
-        BM25 bm25 = new BM25(corpus, termFrequencyScalingFactor, documentLengthNormalizationFactor);
+        BM25 bm25 = new BM25(corpus,
+                             termFrequencyScalingFactor,
+                             documentLengthNormalizationFactor);
 
-        String query = "Love Java";
+        String query = "I Love Java";
 
         try {
             List<Map.Entry<Integer, Double>> results = bm25.search(query);
