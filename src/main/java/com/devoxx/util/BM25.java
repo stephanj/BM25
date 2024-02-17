@@ -1,3 +1,20 @@
+/**
+ * MIT License
+ * Copyright (c) 2024 Stephan Janssen
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 package com.devoxx.util;
 
 import java.util.*;
@@ -14,12 +31,20 @@ import java.util.stream.IntStream;
 public class BM25 {
 
     private static final Pattern SPACE_PATTERN = Pattern.compile("\\s+");
-    private final List<String> corpus;
+    private final List<String> corpus; // List of documents
     private final double avgDocLength;
-    private Map<Integer, Map<String, Integer>> tf;
+    private Map<Integer, Map<String, Integer>> tf; // Term Frequency
     private Map<String, Double> idf; // Inverse Document Frequency
     private final double termFrequencyScalingFactor;
     private final double documentLengthNormalizationFactor;
+
+    /**
+     * Constructor to initialize BM25
+     * @param corpus list of documents
+     */
+    public BM25(final List<String> corpus) {
+        this(corpus, 1.5, 0.75);
+    }
 
     /**
      * Constructor to initialize BM25
