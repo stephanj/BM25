@@ -1,5 +1,6 @@
-package com.devoxx.util;
+package com.devoxx.util.stopwords;
 
+import com.devoxx.util.stopwords.StopWords;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
@@ -41,5 +42,12 @@ class StopWordsTest {
         Set<String> englishStopWords = StopWords.FRENCH;
         assertTrue(englishStopWords.contains("autres"));
         assertTrue(englishStopWords.contains("la"));
+    }
+
+    @Test
+    void testGermanStopWords() {
+        Set<String> englishStopWords = StopWords.GERMAN;
+        assertTrue(englishStopWords.contains("anderen"));
+        assertTrue(englishStopWords.contains("dann"));
     }
 }
