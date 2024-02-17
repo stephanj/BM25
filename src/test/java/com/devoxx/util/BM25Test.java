@@ -56,10 +56,10 @@ class BM25Test {
         assertThat(results).isNotNull();
         assertThat(results.size()).isEqualTo(corpus.size());
         assertThat(results.getFirst().getKey()).isEqualTo(5);
-        assertThat(results.getLast().getKey()).isEqualTo(3);
+        assertThat(results.getLast().getKey()).isEqualTo(4);
 
-        assertThat(results.getFirst().getValue()).isGreaterThan(2.0);
-        assertThat(results.getLast().getValue()).isLessThan(0.4);
+        assertThat(results.getFirst().getValue()).isGreaterThan(1.8);
+        assertThat(results.getLast().getValue()).isEqualTo(0.0);
     }
 
     @Test
@@ -75,6 +75,35 @@ class BM25Test {
         );
 
         BM25 bm25 = new BM25(corpus);
+
+        List<Map.Entry<Integer, Double>> results = bm25.search("Python programming");
+        for (Map.Entry<Integer, Double> entry : results) {
+            System.out.println("Sentence " + entry.getKey() + " : Score = " + entry.getValue() + " - [" + corpus.get(entry.getKey()) + "]");
+        }
+
+        assertThat(results).isNotNull();
+        assertThat(results.size()).isEqualTo(corpus.size());
+
+        assertThat(results.getFirst().getKey()).isEqualTo(6);
+        assertThat(results.getLast().getKey()).isEqualTo(5);
+
+        assertThat(results.getFirst().getValue()).isGreaterThan(1.5);
+        assertThat(results.getLast().getValue()).isEqualTo(0.0);
+    }
+
+    @Test
+    void testBM25_withEnglishStopWords() {
+        List<String> corpus = List.of(
+            "I love programming",
+            "Java is my favorite programming language",
+            "I enjoy writing code in Java",
+            "Java is another popular programming language",
+            "I find programming fascinating",
+            "I love Java",
+            "I prefer Java over Python"
+        );
+
+        BM25 bm25 = new BM25(corpus, StopWords.ENGLISH);
 
         List<Map.Entry<Integer, Double>> results = bm25.search("Python programming");
         for (Map.Entry<Integer, Double> entry : results) {
