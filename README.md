@@ -49,3 +49,16 @@ Sentence 2 : Score = 0.0 - [I enjoy writing code in Java]
 Sentence 5 : Score = 0.0 - [I love Java]
 Sentence 6 : Score = 0.0 - [I prefer Java over Python]
 ```
+
+# With stop words 
+
+Get better results by removing language specific stop words. 
+
+Based on ISO provided list from https://github.com/stopwords-iso 
+
+Current implementation supports English, French, German, Dutch, Italian and Spanish stop words.
+
+```Java
+      BM25 bm25 = new BM25(corpus, StopWords.ENGLISH);
+```
+
